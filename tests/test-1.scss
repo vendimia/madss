@@ -1,0 +1,41 @@
+@charset 'utf-8';
+
+body { 
+    background: red;;;;;;;
+    border: 1px solid blue;
+    tr {
+        font-family: serif;
+        &:hover {
+            background: red;
+        }
+        
+        &:hover {
+            background: red;
+        }
+        
+        &:active {
+            border: blue;
+        }
+
+        td {
+            font-weight: bold;
+        }
+        th {
+            background-color: blue;
+        }
+
+        @media (max-width: 100px) {
+            font-family: sans-serif;
+        }
+    }
+}
+
+div {
+    margin-top: 20px;
+}
+
+@media (max-width: 100px) {
+    body {  
+        background: red;
+    }
+}

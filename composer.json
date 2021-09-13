@@ -1,0 +1,19 @@
+{
+    "name": "vendimia/madss",
+    "description": "MadSS - CSS preprocessor",
+    "keywords": ["css", "preprocessor", "sass", "less"],
+    "version": "0.1.0",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=8.1",
+        "vendimia/interfaces": "*"
+    },
+    "suggest": {
+        "ext-yaml": "Required for YAML style file definition"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vendimia\\MadSS\\": "src"
+        }
+    }
+}

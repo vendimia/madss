@@ -1,0 +1,12 @@
+table {
+    tr {
+        padding: 15px;
+        &:hover {
+            background-color: red;
+            padding: 10px;
+        }
+    }
+}
+div {
+    color: peru;
+}
