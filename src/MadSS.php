@@ -6,14 +6,14 @@ use Vendimia\Interface\Path\ResourceLocatorInterface;
 use RuntimeException;
 use InvalidArgumentException;
 
-/** 
- * MadSS - CSS preprocessor 
+/**
+ * MadSS - CSS preprocessor
  */
 class MadSS
 {
     private array $source_files = [];
 
-    /** Base parser classes according to file extension */     
+    /** Base parser classes according to file extension */
     private array $registered_parsers = [
         'css' => Parser\Css::class,
         'scss' => Parser\Css::class,
@@ -32,7 +32,25 @@ class MadSS
         $this->resource_locator = $resource_locator;
     }
 
-    /** 
+    /**
+     * Process a string using a parser
+     */
+    public function processString($source, $parser_name)
+    {
+        $parser_class = $this->registered_parsers[$parser_name] ?? null;
+
+        if (is_null($parser_class)) {
+            throw new RuntimeException("Parser '{$parser_name} unknow");
+        }
+
+        $parser = new $parser_class($this->resource_locator);
+        $root = $parser->parseString($source);
+
+        return $this->convertNodeToCss($root);
+
+    }
+
+    /**
      * Adds one or more CSS source files, for processing
      */
     public function addSourceFiles(...$files)
@@ -40,7 +58,7 @@ class MadSS
         $this->source_files += $files;
     }
 
-    /** 
+    /**
      * Reads and process all the CSS sources, returns the processed CSS
      */
     public function process(): string
@@ -59,7 +77,7 @@ class MadSS
             // FIXME: Esto debería mejorar. Usamos la extensión para determinar
             // el parser
             $ext = strtolower(substr($file_path, strrpos($file_path, '.') + 1));
-            
+
             $parser_class = $this->registered_parsers[$ext] ?? null;
 
             if (is_null($parser_class)) {
@@ -87,11 +105,21 @@ class MadSS
                     $child->setSiblings(null, null);
                 } else {
                     $child->setSiblings($root->getLast(), $child->getNext());
-    
+
                     $root->setLast($child);
                 }
             }
         }
+
+        return $this->convertNodeToCss($root);
+
+    }
+
+    /**
+     * Flattens a node and its children into a CSS
+     */
+    private function convertNodeToCss(Node $root)
+    {
 
         // Paso 2: Agrupar declaraciones por el nombre de los padres.
 
@@ -117,7 +145,7 @@ class MadSS
             } else {
                 $parent = join(' ', array_slice($line, 0, -1));
                 $declaration = array_slice($line, -1)[0];
-    
+
                 //$normal[$parent][] = $declaration;
                 $declarations[''][$parent][] = $declaration;
             }
@@ -126,16 +154,16 @@ class MadSS
         // Paso 3: Dibujar el CSS
         $css = '';
 
- 
+
         foreach ($declarations as $at_media => $data) {
             if ($at_media) {
                 $css .= $at_media . '{';
             }
             foreach ($data as $name => $elements) {
                 $css .= $name;
-    
+
                 // Los grupos que no tienen nombre, no llevan llaves
-    
+
                 if ($name) {
                     $css .= '{' . join(';', $elements) . '}';
                 } else {
@@ -146,15 +174,14 @@ class MadSS
                 if (!$at_media) {
                     $css .= "\n";
                 }
-                
+
             }
 
             if ($at_media) {
                 $css .= "}\n";
-            } 
+            }
         }
 
- 
         return $css;
     }
 }

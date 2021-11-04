@@ -6,7 +6,7 @@ use Vendimia\MadSS\Parser\Css\Tokenizer;
 use Vendimia\MadSS\Parser\Css\Parser;
 use Vendimia\Interface\Path\ResourceLocatorInterface;
 
-/** 
+/**
  * Parses a CSS/SCSS-like file
  */
 class Css implements ParserInterface
@@ -20,7 +20,12 @@ class Css implements ParserInterface
 
     public function parse($source_file): Node
     {
-        $tokenizer = new Tokenizer(file_get_contents($source_file));
+        return $this->parseString(file_get_contents($source_file));
+    }
+
+    public function parseString($source): Node
+    {
+        $tokenizer = new Tokenizer($source);
         $parser = new Parser($tokenizer);
 
         return $parser->parse();
