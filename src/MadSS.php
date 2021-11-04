@@ -134,16 +134,27 @@ class MadSS
 
         $last_parent = '';
         foreach ($root->getStraightenedNodes() as $line) {
-            if (str_starts_with($line[0], '@media')) {
+
+            if (is_string($line[0]) && str_starts_with($line[0], '@media')) {
                 $media = $line[0];
-                $parent = join(' ', array_slice($line, 1, -1));
+
+                // La línea de nombres está compuesto de arrays, cada array con
+                // cada selector que es afectado por la declaración
+                $name_tree = array_map(
+                    fn($names) => join(',', $names),
+                    array_slice($line, 1, -1)
+                );
+                $parent = join(' ', $name_tree);
                 $declaration = array_slice($line, -1)[0];
 
                 //$at_media[$media][$parent][] = $declaration;
                 $declarations[$media][$parent][] = $declaration;
-
             } else {
-                $parent = join(' ', array_slice($line, 0, -1));
+                $name_tree = array_map(
+                    fn($names) => join(',', $names),
+                    array_slice($line, 0, -1)
+                );
+                $parent = join(' ', $name_tree);
                 $declaration = array_slice($line, -1)[0];
 
                 //$normal[$parent][] = $declaration;
@@ -182,6 +193,6 @@ class MadSS
             }
         }
 
-        return $css;
+        return trim($css);
     }
 }

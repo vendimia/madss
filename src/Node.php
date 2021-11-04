@@ -1,7 +1,7 @@
 <?php
 namespace Vendimia\MadSS;
 
-/** 
+/**
  * CSS Node definition.
  */
 class Node
@@ -70,7 +70,7 @@ class Node
         return $this;
     }
 
-    /** 
+    /**
      * Sets previous and next nodes for this node
      */
     public function setSiblings(?Node $prev, ?Node $next): Node
@@ -83,7 +83,7 @@ class Node
 
         return $this;
     }
-    
+
     public function setParent(Node $parent): self
     {
         return $this->parent = $parent;
@@ -96,18 +96,21 @@ class Node
     }
 
 
-    public function getName(): ?string
+    public function getName(): ?array
     {
-        return $this->name;
+        if (!$this->name) {
+            return $this->name;
+        }
+        return array_map(trim(...), explode(',', $this->name));
     }
 
     public function buildFullParentName()
     {
         $name_tree = [];
 
-        // Nombre de un nodo hijo que deberá ser fusionado con el padre,
+        // Nombres de un nodo hijo que deberá ser fusionado con el padre,
         // reemplazando el '&'
-        $merge_name = '';
+        $merge_name = [];
 
         // Si hay un @media en algún nodo, este se moverá al inicio del árbol
         $at_media = '';
@@ -121,22 +124,27 @@ class Node
                 break;
             }
 
-            // Si es un '@media', lo movemos al incio
-            if (str_contains(strtolower($name), '@media')) {
-                //$name = $node->getCss(render_children: false);
+            // Si es un '@media', lo movemos al inicio
+            if (str_contains(strtolower($name[0]), '@media')) {
                 $at_media = $node->getCss();
-                //array_unshift($name_tree, $name);
                 continue;
             }
 
             if ($merge_name) {
-                $name = str_replace('&', $name, $merge_name);
-                $merge_name = '';
+                // Reemplazamos
+                $result = [];
+                foreach ($merge_name as $mn) {
+                    foreach ($name as $n) {
+                        $result[] = str_replace('&', $n, $mn);
+                    }
+                }
+                $name = $result;
+                $merge_name = [];
             }
-                        
+
             // Si $name tiene un '&', entonces debe ser mezclado con el de su
             // padre
-            if (str_contains($name, '&')) {
+            if (str_contains(join(',', $name), '&')) {
                 $merge_name = $name;
             } else {
                 $name_tree[] = $name;
@@ -156,7 +164,7 @@ class Node
     {
         return $this->full_name;
     }
-    
+
     public function getValue(): string
     {
         return $this->value;
@@ -211,7 +219,7 @@ class Node
         return !is_null($this->first) || !is_null($this->last);
     }
 
-    /** 
+    /**
      * Adds a child node to the end of the chain
      */
     public function addChild(Node $node): Node
@@ -234,8 +242,8 @@ class Node
 
         return $node;
     }
-    
-    /** 
+
+    /**
      * Yields every children of this node
      */
     public function getChildren()
@@ -247,7 +255,7 @@ class Node
         } while ($node = $node->getNext());
     }
 
-    /** 
+    /**
      * Returns this node and his children with self::$full_name setted
      */
     public function getStraightenedNodes(): array
@@ -258,9 +266,8 @@ class Node
 
             $name = $this->buildFullParentName();
             $name[] = $this->getCss();
-            
             return [$name];
-        } 
+        }
 
         $return = [];
 
@@ -273,7 +280,7 @@ class Node
         return $return;
     }
 
-    /** 
+    /**
      * Returns the CSS representation of this node name and value
      */
     public function getCss(): string
@@ -287,7 +294,7 @@ class Node
             }
         } else {
             $return = $name;
-            
+
             if ($this->value) {
                 $return .= ':' . $this->value;
             }
