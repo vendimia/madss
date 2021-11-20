@@ -1,7 +1,7 @@
 <?php
 namespace Vendimia\MadSS\Parser\Css;
 
-/** 
+/**
  * CSS tokens
  */
 enum Token

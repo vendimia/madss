@@ -133,33 +133,10 @@ class MadSS
         $at_media = [];
 
         $last_parent = '';
-        foreach ($root->getStraightenedNodes() as $line) {
-
-            if (is_string($line[0]) && str_starts_with($line[0], '@media')) {
-                $media = $line[0];
-
-                // La línea de nombres está compuesto de arrays, cada array con
-                // cada selector que es afectado por la declaración
-                $name_tree = array_map(
-                    fn($names) => join(',', $names),
-                    array_slice($line, 1, -1)
-                );
-                $parent = join(' ', $name_tree);
-                $declaration = array_slice($line, -1)[0];
-
-                //$at_media[$media][$parent][] = $declaration;
-                $declarations[$media][$parent][] = $declaration;
-            } else {
-                $name_tree = array_map(
-                    fn($names) => join(',', $names),
-                    array_slice($line, 0, -1)
-                );
-                $parent = join(' ', $name_tree);
-                $declaration = array_slice($line, -1)[0];
-
-                //$normal[$parent][] = $declaration;
-                $declarations[''][$parent][] = $declaration;
-            }
+        foreach ($root->getStraightenedNodes() as $name_parts) {
+            // Unimos los nombres con comas
+            $name = join(',', $name_parts[1]);
+            $declarations[$name_parts[0]][$name][] = $name_parts[2];
         }
 
         // Paso 3: Dibujar el CSS

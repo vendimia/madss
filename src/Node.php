@@ -104,15 +104,16 @@ class Node
         return array_map(trim(...), explode(',', $this->name));
     }
 
+    /**
+     * Builds and return the expanded node name, including parent's.
+     *
+     * @return array [at_media, names], names must be joined with ','
+     */
     public function buildFullParentName()
     {
         $name_tree = [];
 
-        // Nombres de un nodo hijo que deberá ser fusionado con el padre,
-        // reemplazando el '&'
-        $merge_name = [];
-
-        // Si hay un @media en algún nodo, este se moverá al inicio del árbol
+        // Si hay un @media en algún nodo, aquí se guardará la declaración
         $at_media = '';
 
         // Sacamos los nombres de todos los padres.
@@ -130,34 +131,33 @@ class Node
                 continue;
             }
 
-            if ($merge_name) {
-                // Reemplazamos
-                $result = [];
-                foreach ($merge_name as $mn) {
-                    foreach ($name as $n) {
-                        $result[] = str_replace('&', $n, $mn);
+            $name_tree[] = $name;
+        }
+        // Mezclamos el arbol en una sola lista de elementos
+
+        $result = null;
+        foreach ($name_tree as $branch) {
+            if (is_null($result)) {
+                $result = $branch;
+                continue;
+            }
+
+            $pre_result = [];
+            foreach ($branch as $leave) {
+                foreach ($result as $r) {
+                    if (str_contains($r, '&')) {
+                        $pre_result[] = strtr($r , ['&' => $leave]);
+                    } else {
+                        $pre_result[] = $leave . ' ' . $r   ;
                     }
                 }
-                $name = $result;
-                $merge_name = [];
             }
-
-            // Si $name tiene un '&', entonces debe ser mezclado con el de su
-            // padre
-            if (str_contains(join(',', $name), '&')) {
-                $merge_name = $name;
-            } else {
-                $name_tree[] = $name;
-            }
+            $result = $pre_result;
         }
-
-        if ($at_media) {
-            $name_tree[] = $at_media;
-        }
-
-        $name_tree = array_reverse($name_tree);
-
-        return $this->full_name = $name_tree;
+        return $this->full_name = [
+            $at_media,
+            $result,
+        ];
     }
 
     public function getFullName(): string
@@ -257,6 +257,8 @@ class Node
 
     /**
      * Returns this node and his children with self::$full_name setted
+     *
+     * @return array [at_media, name, css]
      */
     public function getStraightenedNodes(): array
     {

@@ -42,7 +42,18 @@ final class MadSSTest extends TestCase
         );
     }
 
-    public function testChildWithParentWithMultipleSelector()
+    public function testChildWithParentAndMultipleSelector() {
+        $css = 'x { y, z { color : red } }';
+        $expected = 'x y,x z{color:red}';
+        $madss = new MadSS;
+        $this->assertEquals(
+            $expected,
+            $madss->processString($css, 'css'),
+        );
+
+    }
+
+    public function testChildWithExplicitParentAndMultipleSelector()
     {
         $css = "a, b { color: red; &:hover {color: blue}}";
         $expected = "a,b{color:red}\na:hover,b:hover{color:blue}";
