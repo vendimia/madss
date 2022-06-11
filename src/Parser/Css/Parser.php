@@ -3,27 +3,28 @@ namespace Vendimia\MadSS\Parser\Css;
 
 use Vendimia\MadSS\Node;
 
-/** 
+/**
  * Convers a list of tokens to Nodes
  */
 class Parser
 {
     private Node $root;
-    private $tidx = 0;
+
+    private $tokens;
+    private $t_idx = 0;
 
     public function __construct(private Tokenizer $tokenizer)
     {
         $this->root = new Node;
         $this->tokens = $this->tokenizer->tokenize();
-        $this->t_idx = 0; 
     }
 
-    /** 
+    /**
      * Parses the token list until a BRACKET_CLOSE or end is reached.
      */
     public function parse_block($parent)
     {
-        
+
         $pending_node = null;
 
         while ($token = ($this->tokens[$this->t_idx] ?? null)) {
@@ -56,7 +57,7 @@ class Parser
 
                     // Si es Token::COLON o Token::AT_NAME, el valor debe ser el
                     //      siguiente.
-                    // Si es Token::BRACKET_CLOSE, el valor debe ser el 
+                    // Si es Token::BRACKET_CLOSE, el valor debe ser el
                     //      anterior.
                     if ($t_name == Token::COLON || $t_name == Token::AT_NAME) {
                         $position = 1;
@@ -68,8 +69,8 @@ class Parser
 
                     // Si hay un nodo pendiente, el siguiente token debe ser
                     //  el valor
-                    if ($pending_node && $token_value && 
-                        ($token_value[0] == Token::VALUE) 
+                    if ($pending_node && $token_value &&
+                        ($token_value[0] == Token::VALUE)
                     ) {
 
                         $pending_node->setValue(trim($token_value[1]));
@@ -77,9 +78,9 @@ class Parser
                         // Solo Los Token::NAME acaban aquí. Los AT_NAME pueden
                         // contener un bloque
                         if ($pending_node->getType() == Node::T_NAME) {
-                            $pending_node = null; 
+                            $pending_node = null;
 
-                        } 
+                        }
                     }
 
                     // Un bracket close retorna el parseo de este bloque
@@ -87,7 +88,7 @@ class Parser
                         return;
                     }
                     break;
-                
+
                 case Token::BRACKET_OPEN:
                     // Solo si hay un nodo pendiente
                     if ($pending_node) {
@@ -105,7 +106,7 @@ class Parser
         }
     }
 
-    /** 
+    /**
      * Parses the token list to Nodes
      */
     public function parse(): Node

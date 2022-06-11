@@ -21,7 +21,7 @@ class MadSS
     ];
 
     public function __construct(
-        ?ResourceLocatorInterface $resource_locator = null
+        private ?ResourceLocatorInterface $resource_locator = null
     )
     {
         // Si no especificamos un ResourceLocator, usamos la implementación por defecto
